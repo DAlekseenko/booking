@@ -8,10 +8,10 @@ export class Booking {
     @Column('int')
     room_id: number;
 
-    @Column('timestamp')
-    start: string;
+    @Column({type: "timestamp", precision: 6, nullable: true})
+    start: Date;
 
-    @Column('timestamp')
-    end: string;
+    @Column( {type: "timestamp", precision: 6, nullable: true} )
+    end: Date;
 
 }

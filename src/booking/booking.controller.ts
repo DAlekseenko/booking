@@ -1,7 +1,9 @@
 import {Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query} from '@nestjs/common';
-import {RoomsService} from "./rooms.service";
+import {BookingService} from "./booking.service";
 import {BookingDto} from "./booking.dto";
-import {AvailableDto} from "./available.dto";
+import {BookingAvailableDto} from "./booking.available.dto";
+import {ApiOkResponse} from "@nestjs/swagger";
+import {BookingAvailableResponseDto} from "./booking.available.response.dto";
 
 
 enum Paths {
@@ -9,9 +11,9 @@ enum Paths {
     BookRoom = 'bookRoom'
 }
 
-@Controller('rooms')
-export class RoomsController {
-    constructor(private roomService: RoomsService) {
+@Controller('booking')
+export class BookingController {
+    constructor(private roomService: BookingService) {
     }
 
     private static validateRequest(start: Date, end: Date) {
@@ -24,12 +26,13 @@ export class RoomsController {
     }
 
     @Get(Paths.GetAvailableByDates)
-    async getAvailableByDates(@Query() availableDto: AvailableDto) {
+    @ApiOkResponse({type: BookingAvailableResponseDto, isArray: true, description: 'Available room ids'})
+    async getAvailableByDates(@Query() availableDto: BookingAvailableDto) {
         const {start, end} = availableDto
         const dateStart = new Date(start);
         const dateEnd = new Date(end);
 
-        RoomsController.validateRequest(dateStart, dateEnd)
+        BookingController.validateRequest(dateStart, dateEnd)
 
         return this.roomService.getRoomByDate(dateStart, dateEnd);
     }
@@ -37,13 +40,13 @@ export class RoomsController {
     @Post(Paths.BookRoom)
     @HttpCode(HttpStatus.ACCEPTED)
     async bookRoom(@Body() bookingDto: BookingDto) {
-        const {start, end} = bookingDto
+        const {start, end, id} = bookingDto
         const dateStart = new Date(start);
         const dateEnd = new Date(end);
 
-        RoomsController.validateRequest(dateStart, dateEnd)
+        BookingController.validateRequest(dateStart, dateEnd)
 
-        const err = await this.roomService.bookRoom(bookingDto)
+        const err = await this.roomService.bookRoom(id, dateStart, dateEnd)
 
         if (err) {
             throw new HttpException(err, HttpStatus.NOT_ACCEPTABLE);
